@@ -4,9 +4,24 @@ module Spree
     skip_before_filter :restriction_access
 
     def create
-      # TODO: process the callback from Dotpay
-      
-      render :nothing => true
+      order   = Spree::Order.find_by(number: params[:control])
+      payment = order.payments.last
+
+      payment.started_processing!
+
+      unless payment.completed?
+        case params[:t_status]
+        when '1', '3'
+          payment.failure!
+        when '2'
+          payment.complete!
+          order.next
+        else
+          fail "Unexpected payment status"
+        end
+      end
+
+      render text: 'OK', status: 200
     end
   end
 end

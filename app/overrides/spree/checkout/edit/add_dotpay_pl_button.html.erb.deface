@@ -1,8 +1,52 @@
 <!-- insert_bottom '[data-hook="checkout_form_wrapper"]' -->
-<div class="" id="dotpay-pl-payment" data-hook="dotpay-pl-button">
+<div class="hidden" id="dotpay-pl-payment" data-hook="dotpay-pl-button">
   <% if(@order.state == "payment" && @order.payable_via_dotpay?) %>
     <% method = Spree::Order.dotpay_payment_method %>
-    <%= render :partial => "spree/checkout/payment/#{method.method_type}", :locals => { :payment_method => method } %>
+
+    <%- submit_url = method.preferences[:dotpay_url] %>
+
+    <%= form_tag submit_url, id: 'dotpay-form' do %>
+        <input id="id" name="id" type="hidden" value="<%= method.preferences[:dotpay_account_id] %>" />
+        <input id="control" name="control" type="hidden" value="<%= @order.number %>" />
+
+        <!--
+          From official Dotpay docs:
+          Wartości parametru typ (wartość -> sposób odniesienia do sklepu):
+          0 -> po dokonaniu płatności Kupującemu zostanie udostępniony guzik powrotu do serwisu
+          Sprzedawcy.
+          1 -> po dokonaniu płatności powstanie połączenie niejawne dla Kupującego. Na adres podany
+          w parametrze URL zostaną przesłane metodą POST dane przedstawione w Tabeli 4.
+          2 -> brak reakcji, nic nie jest wysyłane, brak guzika (wartość domyślna).
+          3 -> wykonane zostaną akcje dla typ=0 oraz typ=1 - czyli zarówno zostaną przesłane dane
+          z Tabeli 4 w połączeniu niejawnym (metodą POST), jak i wyświetlony zostanie przycisk powrotu
+          do serwisu Sprzedawcy. W przypadku korzystania z mechanizmu powiadomień URLC zbędne
+          jest korzystanie z niniejszej wartości.
+        -->
+      <input id="typ" name="typ" type="hidden" value="0" />
+
+      <input id="kwota" name="kwota" type="hidden" value="<%= @order.total.to_f %>" />
+      <input id="waluta" name="waluta" type="hidden" value="<%= @order.currency %>" />
+
+      <input id="URLC" name="URLC" type="hidden" value="<%= dotpay_callbacks_url %>" />
+      <input id="URL" name="URL" type="hidden" value="<%= order_url(@order, token: @order.guest_token) %>" />
+
+      <input id="description" name="description" type="hidden" value="Order #<%= @order.number %>" />
+
+      <input id="forename" name="forename" type="hidden" value="<%= @order.bill_address.firstname %>" />
+      <input id="lastname" name="lastname" type="hidden" value="<%= @order.bill_address.lastname %>" />
+      <input id="street" name="street" type="hidden" value="<%= @order.bill_address.address1 %>" />
+      <input id="street_n1" name="street_n1" type="hidden" value="<%= @order.bill_address.address2 %>" />
+      <input id="city" name="city" type="hidden" value="<%= @order.bill_address.city %>" />
+      <input id="postcode" name="postcode" type="hidden" value="<%= @order.bill_address.zipcode %>" />
+      <input id="country" name="country" type="hidden" value="<%= @order.bill_address.country.iso3 %>" />
+      <input id="email" name="email" type="hidden" value="<%= @order.email || @order.user.try(:email) %>" />
+      <input id="phone" name="phone" type="hidden" value="<%= @order.ship_address.phone %>" />
+
+      <input id="charset" name="charset" type="hidden" value="utf-8" />
+      <%= submit_tag "pay with dotpay", :id => 'dotpay-submit' %>
+
+    <% end -%>
+
   <% end %>
 </div>
 
