@@ -33,8 +33,8 @@ class Spree::Gateway::DotpayController < Spree::BaseController
       when '3'
         payment.failure!
       when '2'
-        # payment.complete!
-        # sleep 3
+        payment.complete!
+        sleep 3
         order.next!
         # order.next!
       else
