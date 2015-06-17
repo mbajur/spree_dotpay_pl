@@ -8,7 +8,7 @@ class Spree::Gateway::DotpayController < Spree::BaseController
     @order = Spree::Order.find(params[:order_id])
     @gateway = @order.available_payment_methods.find{ |x| x.id == params[:gateway_id].to_i }
     @order.payments.destroy_all
-    payment = @order.payments.create!(:amount => 0, :payment_method_id => @gateway.id)
+    payment = @order.payments.create!(:amount => @order.total, :payment_method_id => @gateway.id)
 
     if @order.blank? || @gateway.blank?
       flash[:error] = I18n.t("invalid_arguments")
@@ -34,7 +34,7 @@ class Spree::Gateway::DotpayController < Spree::BaseController
         payment.failure!
       when '2'
         payment.complete!
-        sleep 3
+        order.reload
         order.next!
         # order.next!
       else
@@ -53,7 +53,7 @@ class Spree::Gateway::DotpayController < Spree::BaseController
       redirect_to order_url(@order, {
         :checkout_complete => true,
         :guest_token => @order.guest_token}
-      ), :notice => I18n.t("payment_success")
+      ), :notice => I18n.t('spree.order_processed_successfully')
     else
       redirect_to order_url(@order)
     end
