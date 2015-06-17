@@ -1,0 +1,31 @@
+checkout header goes here
+
+<%= form_tag @gateway.preferences[:dotpay_url], :method => "post" do %>
+
+  <fieldset id="order_details">
+    <div class="clear"></div>
+    <legend><%= t("confirm") %></legend>
+    <%= render :partial => 'spree/shared/order_details', :locals => {:order => @order} -%>
+  </fieldset>
+
+  <hr />
+
+  <%= hidden_field_tag 'id', @gateway.preferences[:dotpay_account_id] %>
+  <%= hidden_field_tag 'description', "Order: ##{@order.number}" %>
+  <%= hidden_field_tag 'control', @order.number %>
+  <%= hidden_field_tag 'kwota', @order.total.to_s %>
+  <%= hidden_field_tag 'URLC', gateway_dotpay_comeback_url %>
+  <%= hidden_field_tag 'URL', gateway_dotpay_complete_url(@order.number) %>
+  <%= hidden_field_tag 'typ', 0 %>
+  <%= hidden_field_tag 'waluta', @order.currency %>
+  <%= hidden_field_tag 'forename', @bill_address.firstname %>
+  <%= hidden_field_tag 'lastname', @bill_address.lastname %>
+  <%= hidden_field_tag 'street', @bill_address.address1 %>
+  <%= hidden_field_tag 'street_n1', @bill_address.address2 %>
+  <%= hidden_field_tag 'city', @bill_address.city %>
+  <%= hidden_field_tag 'postcode', @bill_address.zipcode %>
+  <%= hidden_field_tag 'country', @bill_address.country.iso3 %>
+  <%= hidden_field_tag 'email', (@order.email || @order.user.try(:email)) %>
+
+  <%= submit_tag t('dotpay_pl_submit') %>
+<% end %>
